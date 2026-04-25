@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AgroSense — Espace Invité</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#ffffff;--bg2:#f8faf8;--surf:#ffffff;--surf2:#f0f5f1;--bdr:#d1e4d6;--green:#16a34a;--gm:#15803d;--gd:#14532d;--gp:#dcfce7;--text:#0f1f13;--dim:#3d6b4a;--mute:#7a9e85;--blue:#2563eb;--amber:#d97706;--red:#dc2626}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+    .app{max-width:1200px;margin:0 auto;padding:0 20px 60px}
+    header{display:flex;align-items:center;justify-content:space-between;padding:22px 0 18px;border-bottom:1px solid var(--bdr);margin-bottom:26px;flex-wrap:wrap;gap:12px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--green),var(--gd));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px}
+    .logo h1{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--text)}
+    .logo p{font-size:10px;color:var(--mute);letter-spacing:1.5px;text-transform:uppercase}
+    .header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .badge{background:var(--surf2);border:1px solid var(--bdr);border-radius:50px;padding:6px 13px;font-size:12px;color:var(--dim);display:flex;align-items:center;gap:5px}
+    .ro-badge{background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.2);border-radius:50px;padding:4px 11px;font-size:10px;font-weight:700;color:var(--blue);letter-spacing:1px;text-transform:uppercase}
+    .btn-logout{background:transparent;border:1px solid var(--bdr);color:var(--mute);border-radius:8px;padding:6px 13px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-logout:hover{border-color:var(--red);color:var(--red)}
+    /* Sélecteur agriculteur */
+    .ag-selector{background:var(--surf2);border:1px solid var(--bdr);border-radius:14px;padding:20px 22px;margin-bottom:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    .ag-selector label{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--green);white-space:nowrap}
+    select{background:var(--surf);border:1px solid var(--bdr);color:var(--text);border-radius:8px;padding:9px 14px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;min-width:220px;transition:border-color .2s}
+    select:focus{border-color:var(--green)}
+    .ro-notice{display:flex;align-items:center;gap:8px;background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.18);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--blue);margin-left:auto}
+    /* KPIs */
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:22px}
+    .kpi{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:18px;transition:border-color .2s,transform .2s}
+    .kpi:hover{border-color:var(--green);transform:translateY(-2px)}
+    .kpi-icon{font-size:24px;margin-bottom:10px}
+    .kpi-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--green);letter-spacing:-1px;line-height:1}
+    .kpi-lbl{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:1.5px;margin-top:5px}
+    /* Stats */
+    .st{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .st::after{content:'';flex:1;height:1px;background:var(--bdr)}
+    .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:18px;margin-bottom:22px}
+    .chart-card{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:20px}
+    .chart-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text)}
+    .chart-wrap{position:relative;height:240px}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:22px}
+    .stat-card{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:18px}
+    .stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(209,228,214,0.5)}
+    .stat-row:last-child{border-bottom:none}
+    .stat-key{font-size:13px;color:var(--dim)}
+    .stat-val{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--green)}
+    /* empty / loading */
+    .empty{text-align:center;padding:60px;color:var(--mute);font-size:13px}
+    .loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--mute);gap:10px;font-size:13px}
+    .sp{width:16px;height:16px;border:2px solid var(--bdr);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🌱</div>
+      <div><h1>AgroSense</h1><p>Espace Invité</p></div>
+    </div>
+    <div class="header-right">
+      <span class="ro-badge">👁️ Lecture seule</span>
+      <div class="badge">👤 <span id="user-nom">—</span></div>
+      <button class="btn-logout" onclick="doLogout()">🚪 Déconnexion</button>
+    </div>
+  </header>
+
+  <!-- Sélecteur agriculteur -->
+  <div class="ag-selector">
+    <label>🌾 Choisir un agriculteur :</label>
+    <select id="sel-ag" onchange="loadDashboard()">
+      <option value="">— Sélectionnez un agriculteur —</option>
+    </select>
+    <div class="ro-notice">🔒 Mode lecture seule — Statistiques uniquement</div>
+  </div>
+
+  <div id="main-content">
+    <div class="empty">👆 Sélectionnez un agriculteur pour afficher ses statistiques.</div>
+  </div>
+</div>
+
+<script>
+Chart.defaults.color='#7a9e85'; Chart.defaults.borderColor='#d1e4d6';
+let charts={};
+function destroyChart(id){ if(charts[id]){charts[id].destroy();delete charts[id];} }
+
+async function doLogout(){ await fetch('/api/auth/logout',{method:'POST',credentials:'include'}); window.location.href='/login'; }
+
+function fmtDate(iso){ const d=new Date(iso); return d.toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+
+async function init(){
+  const res=await fetch('/api/auth/me',{credentials:'include'});
+  if(!res.ok){ window.location.href='/login'; return; }
+  const u=await res.json();
+  document.getElementById('user-nom').textContent=u.nom||u.username;
+  // Charger les agriculteurs
+  const agRes=await fetch('/api/agriculteurs',{credentials:'include'});
+  const ags=await agRes.json();
+  const sel=document.getElementById('sel-ag');
+  ags.forEach(a=>{ const opt=document.createElement('option'); opt.value=a.id; opt.textContent=a.nom; sel.appendChild(opt); });
+}
+
+async function loadDashboard(){
+  const agId=document.getElementById('sel-ag').value;
+  if(!agId){ document.getElementById('main-content').innerHTML='<div class="empty">👆 Sélectionnez un agriculteur.</div>'; return; }
+
+  document.getElementById('main-content').innerHTML='<div class="loading"><div class="sp"></div>Chargement des données...</div>';
+
+  const [dashRes, statsRes] = await Promise.all([
+    fetch(`/api/dashboard?agriculteur_id=${agId}`,{credentials:'include'}),
+    fetch(`/api/stats/moyenne_temperature?agriculteur_id=${agId}`,{credentials:'include'})
+  ]);
+  const dash=await dashRes.json();
+  const stats=await statsRes.json();
+
+  const content = document.getElementById('main-content');
+  content.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-icon">🌿</div><div class="kpi-val">${dash.nb_parcelles}</div><div class="kpi-lbl">Parcelles</div></div>
+      <div class="kpi"><div class="kpi-icon">📡</div><div class="kpi-val">${dash.nb_capteurs}</div><div class="kpi-lbl">Capteurs</div></div>
+      <div class="kpi"><div class="kpi-icon">📋</div><div class="kpi-val">${dash.total_mesures.toLocaleString('fr-FR')}</div><div class="kpi-lbl">Mesures 24h</div></div>
+      <div class="kpi"><div class="kpi-icon">⚠️</div><div class="kpi-val" style="color:${dash.nb_alertes>0?'#dc2626':'#16a34a'}">${dash.nb_alertes}</div><div class="kpi-lbl">Alertes actives</div></div>
+    </div>
+    <div class="st">🌡️ Températures moyennes par parcelle (24h)</div>
+    <div class="stats-grid" id="stats-temp"></div>
+    <div class="st" style="margin-top:8px">📈 Graphiques</div>
+    <div class="chart-grid">
+      <div class="chart-card"><div class="chart-title">🌡️ Température</div><div class="chart-wrap"><canvas id="ch-temp"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">💧 Humidité</div><div class="chart-wrap"><canvas id="ch-hum"></canvas></div></div>
+    </div>
+  `;
+
+  // Stats temp
+  const sg=document.getElementById('stats-temp');
+  if(!stats.length){ sg.innerHTML='<div class="empty">Aucune donnée.</div>'; }
+  else sg.innerHTML=stats.map(s=>`
+    <div class="stat-card">
+      <div class="st" style="font-size:13px;margin-bottom:12px">🌿 ${s.parcelle}</div>
+      <div class="stat-row"><span class="stat-key">Moyenne</span><span class="stat-val">${s.moyenne}°C</span></div>
+      <div class="stat-row"><span class="stat-key">Minimum</span><span class="stat-val" style="color:#2563eb">${s.min}°C</span></div>
+      <div class="stat-row"><span class="stat-key">Maximum</span><span class="stat-val" style="color:#dc2626">${s.max}°C</span></div>
+      <div class="stat-row"><span class="stat-key">Nb mesures</span><span class="stat-val" style="color:var(--mute)">${s.nb}</span></div>
+    </div>`).join('');
+
+  // Charts
+  const mesRes=await fetch(`/api/mesures?agriculteur_id=${agId}&heures=24&limit=300`,{credentials:'include'});
+  const mesures=await mesRes.json();
+  const hours=[...Array(24).keys()];
+  const labels=hours.map(h=>`${String(h).padStart(2,'0')}h`);
+  const avg=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;
+  const parcelles=[...new Set(mesures.map(m=>m.parcelle_nom))].sort();
+  const clrs=['#16a34a','#2563eb','#d97706','#7c3aed'];
+
+  destroyChart('temp'); destroyChart('hum');
+  const dsTemp=parcelles.map((p,i)=>({label:p,data:hours.map(h=>{ const v=mesures.filter(m=>m.parcelle_nom===p&&m.type==='température'&&new Date(m.timestamp).getHours()===h).map(m=>m.valeur); return avg(v); }),borderColor:clrs[i%4],backgroundColor:clrs[i%4]+'22',tension:.4,fill:true,pointRadius:2}));
+  const dsHum=parcelles.map((p,i)=>({label:p,data:hours.map(h=>{ const v=mesures.filter(m=>m.parcelle_nom===p&&m.type==='humidité'&&new Date(m.timestamp).getHours()===h).map(m=>m.valeur); return avg(v); }),borderColor:clrs[(i+1)%4],backgroundColor:clrs[(i+1)%4]+'22',tension:.4,fill:true,pointRadius:2}));
+  const baseOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:'DM Sans'},boxWidth:12}}},scales:{x:{grid:{color:'rgba(209,228,214,0.4)'}},y:{grid:{color:'rgba(209,228,214,0.4)'}}}};
+  charts['temp']=new Chart(document.getElementById('ch-temp'),{type:'line',data:{labels,datasets:dsTemp},options:baseOpts});
+  charts['hum'] =new Chart(document.getElementById('ch-hum'), {type:'line',data:{labels,datasets:dsHum}, options:baseOpts});
+}
+
+init();
+</script>
+</body>
+</html>

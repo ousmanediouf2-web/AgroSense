@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AgroSense — Connexion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--green:#16a34a;--gd:#14532d;--gm:#166534;--bg:#0a0f0d;--surf:#111f16;--bdr:#1e3a28;--text:#e8f5e9;--dim:#86a58e;--red:#f87171}
+    body{background:var(--bg);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(74,222,128,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(74,222,128,0.04) 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
+    .deco{position:fixed;border-radius:50%;filter:blur(80px);opacity:.15;pointer-events:none}
+    .d1{width:500px;height:500px;background:#16a34a;top:-150px;right:-150px}
+    .d2{width:350px;height:350px;background:#065f46;bottom:-100px;left:-100px}
+    .card{position:relative;z-index:1;background:var(--surf);border:1px solid var(--bdr);border-radius:24px;padding:46px 42px;width:100%;max-width:430px;box-shadow:0 0 60px rgba(74,222,128,0.08),0 20px 40px rgba(0,0,0,0.4);animation:up .5s ease}
+    @keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .logo{display:flex;align-items:center;gap:13px;margin-bottom:8px}
+    .logo-icon{width:50px;height:50px;background:linear-gradient(135deg,var(--green),var(--gd));border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 20px rgba(74,222,128,0.25);flex-shrink:0}
+    .logo h1{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--text)}
+    .logo p{font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase}
+    .subtitle{font-size:13px;color:var(--dim);margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--bdr)}
+    .tabs{display:flex;gap:6px;background:#0d1a11;border-radius:10px;padding:4px;margin-bottom:24px}
+    .tab-btn{flex:1;background:transparent;border:none;color:var(--dim);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;padding:9px;border-radius:8px;transition:all .2s}
+    .tab-btn.active{background:var(--gm);color:#fff}
+    .form-group{margin-bottom:18px}
+    label{display:block;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px}
+    .iw{position:relative}
+    .ii{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none}
+    input{width:100%;background:#0d1a11;border:1px solid var(--bdr);color:var(--text);border-radius:10px;padding:12px 13px 12px 42px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
+    input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(74,222,128,0.1)}
+    .toggle{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);cursor:pointer;font-size:15px}
+    .msg{border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;align-items:center;gap:8px}
+    .msg.err{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:var(--red)}
+    .msg.suc{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:#4ade80}
+    .msg.on{display:flex}
+    .btn{width:100%;background:linear-gradient(135deg,var(--gm),var(--green));color:#fff;border:none;border-radius:10px;padding:13px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(74,222,128,0.3)}
+    .btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .sp{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .links{margin-top:20px;text-align:center;font-size:12px;color:var(--dim);display:flex;flex-direction:column;gap:8px}
+    .links a{color:#4ade80;text-decoration:none;font-weight:600}
+    .links .al a{color:#f59e0b}
+  </style>
+</head>
+<body>
+<div class="deco d1"></div><div class="deco d2"></div>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🌱</div>
+    <div><h1>AgroSense</h1><p>Station Météo Agricole IoT</p></div>
+  </div>
+  <p class="subtitle">Connectez-vous pour accéder à votre espace</p>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="setTab('agriculteur')">🌾 Agriculteur</button>
+    <button class="tab-btn" onclick="setTab('invite')">👁️ Invité</button>
+  </div>
+  <div class="msg err" id="err"><span>⚠️</span><span id="err-txt"></span></div>
+  <div class="msg suc" id="suc"><span>✅</span><span id="suc-txt"></span></div>
+  <div class="form-group">
+    <label>Identifiant</label>
+    <div class="iw"><span class="ii">👤</span><input type="text" id="username" placeholder="Votre identifiant"/></div>
+  </div>
+  <div class="form-group">
+    <label>Mot de passe</label>
+    <div class="iw"><span class="ii">🔒</span><input type="password" id="password" placeholder="Votre mot de passe"/>
+    <button class="toggle" onclick="document.getElementById('password').type=document.getElementById('password').type==='password'?'text':'password'">👁️</button></div>
+  </div>
+  <button class="btn" id="btn" onclick="doLogin()">
+    <span id="btn-txt">Se connecter</span>
+    <div class="sp" id="sp"></div>
+  </button>
+  <div class="links">
+    <span>Pas de compte ? <a href="/register">S'inscrire</a></span>
+    <span class="al">Administrateur : <a href="/admin/login">👑 Accès Admin</a></span>
+  </div>
+</div>
+<script>
+  document.addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+  function setTab(t){
+    document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(t==='agriculteur'&&i===0)||(t==='invite'&&i===1)));
+  }
+  function showMsg(type,m){
+    ['err','suc'].forEach(id=>document.getElementById(id).classList.remove('on'));
+    const el=document.getElementById(type); document.getElementById(type+'-txt').textContent=m; el.classList.add('on');
+  }
+  async function doLogin(){
+    const u=document.getElementById('username').value.trim(), p=document.getElementById('password').value;
+    if(!u||!p){ showMsg('err','Veuillez remplir tous les champs.'); return; }
+    const btn=document.getElementById('btn'); btn.disabled=true;
+    document.getElementById('btn-txt').style.display='none'; document.getElementById('sp').style.display='block';
+    document.getElementById('err').classList.remove('on');
+    try{
+      const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({username:u,password:p,admin_route:false})});
+      const data=await res.json();
+      if(res.ok){ showMsg('suc','Connexion réussie…'); setTimeout(()=>window.location.href=data.redirect||'/',600); }
+      else{
+        if(data.redirect){ showMsg('err',data.error); setTimeout(()=>window.location.href=data.redirect,2000); }
+        else showMsg('err',data.error||'Erreur de connexion');
+        btn.disabled=false; document.getElementById('btn-txt').style.display='block'; document.getElementById('sp').style.display='none';
+      }
+    }catch(e){ showMsg('err','Serveur inaccessible.'); btn.disabled=false; document.getElementById('btn-txt').style.display='block'; document.getElementById('sp').style.display='none'; }
+  }
+</script>
+</body>
+</html>

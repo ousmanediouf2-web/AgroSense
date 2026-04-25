@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AgroSense — Accès Administrateur</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --gold:#d97706;--gold-mid:#f59e0b;--gold-light:#fef3c7;--gold-pale:#fffbeb;
+      --bg:#fffbeb;--surf:#ffffff;--bdr:#e2e8f0;--bdr-gold:#fde68a;
+      --text:#1c1917;--dim:#57534e;--mute:#a8a29e;--red:#dc2626
+    }
+    body{background:var(--bg);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;overflow:hidden}
+
+    /* Côté gauche décoratif */
+    .left-panel{width:45%;background:linear-gradient(160deg,#1c1608 0%,#2d1f06 50%,#1a1305 100%);display:flex;flex-direction:column;justify-content:center;padding:60px;position:relative;overflow:hidden}
+    .left-panel::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(245,158,11,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,0.05) 1px,transparent 1px);background-size:40px 40px}
+    .deco-circle{position:absolute;border-radius:50%;opacity:.12}
+    .dc1{width:400px;height:400px;background:#f59e0b;top:-150px;right:-100px}
+    .dc2{width:250px;height:250px;background:#d97706;bottom:-80px;left:-60px}
+    .left-content{position:relative;z-index:1}
+    .left-logo{display:flex;align-items:center;gap:14px;margin-bottom:48px}
+    .left-logo-icon{width:54px;height:54px;background:linear-gradient(135deg,var(--gold-mid),var(--gold));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 0 30px rgba(245,158,11,0.4)}
+    .left-logo h1{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fef3c7}
+    .left-logo p{font-size:10px;color:#a16207;letter-spacing:2px;text-transform:uppercase}
+    .left-title{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:#fef3c7;line-height:1.2;margin-bottom:16px}
+    .left-title span{color:var(--gold-mid)}
+    .left-desc{font-size:14px;color:#a16207;line-height:1.7;margin-bottom:36px}
+    .feature-list{display:flex;flex-direction:column;gap:12px}
+    .feature-item{display:flex;align-items:center;gap:10px;font-size:13px;color:#fef3c7}
+    .feature-icon{width:32px;height:32px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .left-footer{position:absolute;bottom:30px;left:60px;font-size:11px;color:#78350f;z-index:1}
+
+    /* Côté droit formulaire */
+    .right-panel{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;background:var(--bg)}
+    .card{background:var(--surf);border:1px solid var(--bdr);border-radius:20px;padding:44px 40px;width:100%;max-width:420px;box-shadow:0 4px 24px rgba(0,0,0,0.06)}
+    .card-header{text-align:center;margin-bottom:32px}
+    .admin-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold-light);border:1px solid var(--bdr-gold);border-radius:50px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px}
+    .card-header h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:6px}
+    .card-header p{font-size:13px;color:var(--mute)}
+    .warning-box{display:flex;align-items:flex-start;gap:10px;background:var(--gold-pale);border:1px solid var(--bdr-gold);border-radius:10px;padding:12px 14px;margin-bottom:24px}
+    .warning-box-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+    .warning-box-text{font-size:12px;color:#92400e;line-height:1.5}
+    .form-group{margin-bottom:18px}
+    label{display:block;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-weight:600}
+    .iw{position:relative}
+    .ii{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none}
+    input{width:100%;background:var(--bg);border:1.5px solid var(--bdr);color:var(--text);border-radius:10px;padding:12px 13px 12px 42px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
+    input:focus{border-color:var(--gold-mid);box-shadow:0 0 0 3px rgba(245,158,11,0.12);background:#fff}
+    .toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--mute);cursor:pointer;font-size:15px;padding:3px;transition:color .2s}
+    .toggle:hover{color:var(--gold)}
+    .msg{border-radius:9px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;align-items:center;gap:8px}
+    .msg.err{background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);color:var(--red)}
+    .msg.suc{background:rgba(22,163,74,0.06);border:1px solid rgba(22,163,74,0.2);color:#16a34a}
+    .msg.on{display:flex}
+    .btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-mid));color:#000;border:none;border-radius:10px;padding:14px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(217,119,6,0.3)}
+    .btn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+    .sp{display:none;width:18px;height:18px;border:2px solid rgba(0,0,0,0.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .sep{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--mute);font-size:12px}
+    .sep::before,.sep::after{content:'';flex:1;height:1px;background:var(--bdr)}
+    .back-link{display:block;text-align:center;font-size:12px;color:var(--mute);text-decoration:none;transition:color .2s}
+    .back-link:hover{color:var(--gold)}
+    @media(max-width:768px){.left-panel{display:none}.right-panel{padding:24px}}
+  </style>
+</head>
+<body>
+  <!-- Panneau gauche -->
+  <div class="left-panel">
+    <div class="deco-circle dc1"></div>
+    <div class="deco-circle dc2"></div>
+    <div class="left-content">
+      <div class="left-logo">
+        <div class="left-logo-icon">🌱</div>
+        <div><h1>AgroSense</h1><p>Station Météo Agricole IoT</p></div>
+      </div>
+      <div class="left-title">Panneau d'<span>administration</span><br>AgroSense</div>
+      <p class="left-desc">Gérez l'ensemble de la plateforme : utilisateurs, inscriptions, surveillance des exploitations et statistiques globales.</p>
+      <div class="feature-list">
+        <div class="feature-item"><div class="feature-icon">👥</div>Gestion des agriculteurs et invités</div>
+        <div class="feature-item"><div class="feature-icon">⏳</div>Validation des inscriptions</div>
+        <div class="feature-item"><div class="feature-icon">📊</div>Statistiques par exploitation</div>
+        <div class="feature-item"><div class="feature-icon">🚨</div>Alertes globales en temps réel</div>
+        <div class="feature-item"><div class="feature-icon">📋</div>Rapport comparatif & export CSV</div>
+      </div>
+    </div>
+    <div class="left-footer">AgroSense · Administration · 2025</div>
+  </div>
+
+  <!-- Panneau droit -->
+  <div class="right-panel">
+    <div class="card">
+      <div class="card-header">
+        <div class="admin-badge">👑 Accès Administrateur</div>
+        <h2>Connexion sécurisée</h2>
+        <p>Réservé à l'administrateur système</p>
+      </div>
+
+      <div class="warning-box">
+        <div class="warning-box-icon">🔒</div>
+        <div class="warning-box-text">Cet espace est strictement réservé à l'administrateur. Toute tentative d'accès non autorisé est enregistrée.</div>
+      </div>
+
+      <div class="msg err" id="err"><span>⚠️</span><span id="err-txt"></span></div>
+      <div class="msg suc" id="suc"><span>✅</span><span id="suc-txt"></span></div>
+
+      <div class="form-group">
+        <label>Identifiant administrateur</label>
+        <div class="iw">
+          <span class="ii">👤</span>
+          <input type="text" id="username" placeholder="Votre identifiant admin" autocomplete="username"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <div class="iw">
+          <span class="ii">🔑</span>
+          <input type="password" id="password" placeholder="Mot de passe sécurisé" autocomplete="current-password"/>
+          <button class="toggle" onclick="togglePwd()" title="Afficher/Masquer">👁️</button>
+        </div>
+      </div>
+
+      <button class="btn" id="btn" onclick="doLogin()">
+        <span id="btn-txt">Accéder au panneau admin</span>
+        <div class="sp" id="sp"></div>
+      </button>
+
+      <div class="sep">ou</div>
+      <a class="back-link" href="/login">← Retour à la connexion utilisateur</a>
+    </div>
+  </div>
+
+<script>
+  document.addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+  function togglePwd(){ const i=document.getElementById('password'); i.type=i.type==='password'?'text':'password'; }
+  function showMsg(type,m){
+    ['err','suc'].forEach(id=>{document.getElementById(id).classList.remove('on');});
+    document.getElementById(type+'-txt').textContent=m;
+    document.getElementById(type).classList.add('on');
+  }
+  async function doLogin(){
+    const u=document.getElementById('username').value.trim();
+    const p=document.getElementById('password').value;
+    if(!u||!p){ showMsg('err','Veuillez remplir tous les champs.'); return; }
+    const btn=document.getElementById('btn'); btn.disabled=true;
+    document.getElementById('btn-txt').style.display='none';
+    document.getElementById('sp').style.display='block';
+    document.getElementById('err').classList.remove('on');
+    try{
+      const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({username:u,password:p,admin_route:true})});
+      const data=await res.json();
+      if(res.ok){
+        showMsg('suc','Connexion réussie, redirection...');
+        setTimeout(()=>window.location.href=data.redirect||'/admin',800);
+      } else {
+        showMsg('err',data.error||'Identifiant ou mot de passe incorrect');
+        btn.disabled=false;
+        document.getElementById('btn-txt').style.display='inline';
+        document.getElementById('sp').style.display='none';
+      }
+    }catch(e){
+      showMsg('err','Impossible de contacter le serveur.');
+      btn.disabled=false;
+      document.getElementById('btn-txt').style.display='inline';
+      document.getElementById('sp').style.display='none';
+    }
+  }
+</script>
+</body>
+</html>

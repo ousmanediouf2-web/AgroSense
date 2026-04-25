@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AgroSense — Inscription</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--green:#16a34a;--gd:#14532d;--gm:#166534;--bg:#0a0f0d;--surf:#111f16;--bdr:#1e3a28;--text:#e8f5e9;--dim:#86a58e;--red:#f87171}
+    body{background:var(--bg);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(74,222,128,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(74,222,128,0.04) 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
+    .deco{position:fixed;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none}
+    .d1{width:400px;height:400px;background:#16a34a;top:-100px;right:-100px}
+    .card{position:relative;z-index:1;background:var(--surf);border:1px solid var(--bdr);border-radius:24px;padding:44px 40px;width:100%;max-width:460px;box-shadow:0 0 60px rgba(74,222,128,0.07),0 20px 40px rgba(0,0,0,0.4);animation:up .5s ease}
+    @keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .logo{display:flex;align-items:center;gap:13px;margin-bottom:6px}
+    .logo-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--green),var(--gd));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 18px rgba(74,222,128,0.22);flex-shrink:0}
+    .logo h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text)}
+    .logo p{font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase}
+    h2{font-family:'Syne',sans-serif;font-size:16px;color:var(--green);margin:16px 0 4px}
+    .info{font-size:12px;color:var(--dim);margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--bdr)}
+    /* Role selector */
+    .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+    .role-card{border:1px solid var(--bdr);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;background:#0d1a11}
+    .role-card:hover{border-color:var(--green);background:rgba(74,222,128,0.04)}
+    .role-card.selected{border-color:var(--green);background:rgba(74,222,128,0.08);box-shadow:0 0 0 2px rgba(74,222,128,0.15)}
+    .role-icon{font-size:22px;margin-bottom:6px}
+    .role-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+    .role-desc{font-size:10px;color:var(--dim);line-height:1.4}
+    .form-group{margin-bottom:16px}
+    label{display:block;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px}
+    .iw{position:relative}
+    .ii{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none}
+    input{width:100%;background:#0d1a11;border:1px solid var(--bdr);color:var(--text);border-radius:10px;padding:12px 13px 12px 42px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
+    input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(74,222,128,0.1)}
+    .toggle{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);cursor:pointer;font-size:15px}
+    .msg{border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none;align-items:center;gap:8px}
+    .msg.err{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:var(--red)}
+    .msg.suc{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:#4ade80}
+    .msg.on{display:flex}
+    /* Alerte validation */
+    .validation-notice{display:flex;align-items:flex-start;gap:10px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:12px;color:#fbbf24}
+    .btn{width:100%;background:linear-gradient(135deg,var(--gm),var(--green));color:#fff;border:none;border-radius:10px;padding:13px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(74,222,128,0.3)}
+    .btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .sp{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .back-link{display:block;text-align:center;margin-top:16px;font-size:12px;color:var(--dim);text-decoration:none}
+    .back-link a{color:#4ade80;font-weight:600;text-decoration:none}
+  </style>
+</head>
+<body>
+<div class="deco d1"></div>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🌱</div>
+    <div><h1>AgroSense</h1><p>Station Météo Agricole IoT</p></div>
+  </div>
+  <h2>Créer un compte</h2>
+  <p class="info">Choisissez votre profil et remplissez le formulaire. L'administrateur validera votre inscription.</p>
+
+  <!-- Choix du rôle -->
+  <div class="role-grid">
+    <div class="role-card selected" id="role-agri" onclick="selectRole('agriculteur')">
+      <div class="role-icon">🌾</div>
+      <div class="role-name">Agriculteur</div>
+      <div class="role-desc">Gérez vos parcelles, capteurs et consultez vos données</div>
+    </div>
+    <div class="role-card" id="role-inv" onclick="selectRole('invite')">
+      <div class="role-icon">👁️</div>
+      <div class="role-name">Invité</div>
+      <div class="role-desc">Consultez en lecture seule les statistiques d'un agriculteur</div>
+    </div>
+  </div>
+
+  <div class="validation-notice">
+    ⏳ Votre inscription sera soumise à la validation de l'administrateur avant d'être activée.
+  </div>
+
+  <div class="msg err" id="err"><span>⚠️</span><span id="err-txt"></span></div>
+  <div class="msg suc" id="suc"><span>✅</span><span id="suc-txt"></span></div>
+
+  <div class="form-group">
+    <label>Nom complet</label>
+    <div class="iw"><span class="ii">👤</span><input type="text" id="nom" placeholder="Votre nom et prénom"/></div>
+  </div>
+  <div class="form-group">
+    <label>Identifiant de connexion</label>
+    <div class="iw"><span class="ii">🔑</span><input type="text" id="username" placeholder="Choisissez un identifiant unique"/></div>
+  </div>
+  <div class="form-group">
+    <label>Mot de passe (min. 6 caractères)</label>
+    <div class="iw"><span class="ii">🔒</span><input type="password" id="password" placeholder="Choisissez un mot de passe sécurisé"/>
+    <button class="toggle" onclick="document.getElementById('password').type=document.getElementById('password').type==='password'?'text':'password'">👁️</button></div>
+  </div>
+  <div class="form-group">
+    <label>Confirmer le mot de passe</label>
+    <div class="iw"><span class="ii">🔒</span><input type="password" id="confirm" placeholder="Répétez votre mot de passe"/></div>
+  </div>
+
+  <button class="btn" id="btn" onclick="doRegister()">
+    <span id="btn-txt">Envoyer ma demande d'inscription</span>
+    <div class="sp" id="sp"></div>
+  </button>
+  <p class="back-link">Déjà un compte ? <a href="/login">Se connecter</a></p>
+</div>
+<script>
+  let selectedRole = 'agriculteur';
+  function selectRole(r){
+    selectedRole=r;
+    document.getElementById('role-agri').classList.toggle('selected',r==='agriculteur');
+    document.getElementById('role-inv').classList.toggle('selected',r==='invite');
+  }
+  function showMsg(type,m){
+    ['err','suc'].forEach(id=>document.getElementById(id).classList.remove('on'));
+    document.getElementById(type+'-txt').textContent=m;
+    document.getElementById(type).classList.add('on');
+  }
+  async function doRegister(){
+    const nom=document.getElementById('nom').value.trim();
+    const username=document.getElementById('username').value.trim().toLowerCase();
+    const password=document.getElementById('password').value;
+    const confirm=document.getElementById('confirm').value;
+    if(!nom||!username||!password){ showMsg('err','Tous les champs sont obligatoires.'); return; }
+    if(password!==confirm){ showMsg('err','Les mots de passe ne correspondent pas.'); return; }
+    if(password.length<6){ showMsg('err','Mot de passe minimum 6 caractères.'); return; }
+    const btn=document.getElementById('btn'); btn.disabled=true;
+    document.getElementById('btn-txt').style.display='none'; document.getElementById('sp').style.display='block';
+    document.getElementById('err').classList.remove('on');
+    try{
+      const res=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nom,username,password,role:selectedRole})});
+      const data=await res.json();
+      if(res.ok||res.status===201){
+        showMsg('suc','Inscription envoyée ! En attente de validation par l\'administrateur.');
+        btn.disabled=true;
+        document.getElementById('btn-txt').style.display='block';
+        document.getElementById('btn-txt').textContent='✅ Demande envoyée';
+        document.getElementById('sp').style.display='none';
+      } else {
+        showMsg('err',data.error||'Erreur');
+        btn.disabled=false; document.getElementById('btn-txt').style.display='block'; document.getElementById('sp').style.display='none';
+      }
+    }catch(e){ showMsg('err','Serveur inaccessible.'); btn.disabled=false; document.getElementById('btn-txt').style.display='block'; document.getElementById('sp').style.display='none'; }
+  }
+</script>
+</body>
+</html>

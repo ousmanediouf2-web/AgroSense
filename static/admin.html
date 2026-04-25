@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AgroSense — Administration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#f8fafc;--surf:#ffffff;--surf2:#f1f5f9;--bdr:#e2e8f0;
+      --gold:#d97706;--gold-light:#fef3c7;--gold-mid:#f59e0b;
+      --green:#16a34a;--green-pale:#dcfce7;
+      --blue:#2563eb;--blue-pale:#eff6ff;
+      --red:#dc2626;--red-pale:#fef2f2;
+      --purple:#7c3aed;--purple-pale:#f5f3ff;
+      --text:#0f172a;--dim:#475569;--mute:#94a3b8;
+      --amber:#d97706;
+    }
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+    .app{max-width:1400px;margin:0 auto;padding:0 24px 60px}
+
+    /* ── SIDEBAR ─────────────────────────────────────── */
+    .layout{display:flex;gap:0;min-height:100vh}
+    .sidebar{width:240px;flex-shrink:0;background:var(--surf);border-right:1px solid var(--bdr);padding:20px 0;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+    .sidebar-logo{display:flex;align-items:center;gap:10px;padding:0 20px 20px;border-bottom:1px solid var(--bdr);margin-bottom:16px}
+    .sidebar-logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--gold-mid),var(--gold));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(217,119,6,0.25);flex-shrink:0}
+    .sidebar-logo h1{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text)}
+    .sidebar-logo span{font-size:10px;color:var(--mute);letter-spacing:1.5px;text-transform:uppercase}
+    .nav-section{padding:0 12px;margin-bottom:8px}
+    .nav-label{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:1.5px;padding:0 8px;margin-bottom:4px}
+    .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--dim);font-weight:500;transition:all .15s;border:none;background:transparent;width:100%;text-align:left}
+    .nav-item:hover{background:var(--surf2);color:var(--text)}
+    .nav-item.active{background:var(--gold-light);color:var(--amber);font-weight:600}
+    .nav-item .nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+    .nav-badge{margin-left:auto;background:var(--red);color:#fff;border-radius:50px;padding:1px 7px;font-size:10px;font-weight:700}
+    .sidebar-footer{margin-top:auto;padding:16px 12px 0;border-top:1px solid var(--bdr)}
+    .user-info{display:flex;align-items:center;gap:10px;padding:10px;background:var(--gold-light);border-radius:10px;margin-bottom:10px}
+    .user-avatar{width:34px;height:34px;background:var(--gold-mid);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+    .user-name{font-size:12px;font-weight:600;color:var(--text)}
+    .user-role{font-size:10px;color:var(--amber);font-weight:600;text-transform:uppercase;letter-spacing:1px}
+    .btn-logout{width:100%;background:transparent;border:1px solid var(--bdr);color:var(--dim);border-radius:8px;padding:8px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+    .btn-logout:hover{border-color:var(--red);color:var(--red);background:var(--red-pale)}
+
+    /* ── MAIN CONTENT ───────────────────────────────── */
+    .main{flex:1;min-width:0;padding:24px 28px}
+    .page{display:none;animation:fi .3s ease}
+    .page.active{display:block}
+    @keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .page-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
+    .page-sub{font-size:13px;color:var(--mute);margin-bottom:24px}
+
+    /* ── KPI CARDS ──────────────────────────────────── */
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+    .kpi{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s,transform .15s,box-shadow .15s}
+    .kpi:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.08);border-color:var(--gold-mid)}
+    .kpi-accent{position:absolute;top:0;left:0;width:3px;height:100%;border-radius:3px 0 0 3px}
+    .kpi-icon{font-size:22px;margin-bottom:10px}
+    .kpi-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1;margin-bottom:4px}
+    .kpi-lbl{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:1.2px}
+    .kpi-trend{font-size:11px;margin-top:6px}
+
+    /* ── SECTION TITLE ──────────────────────────────── */
+    .st{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .st::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+    /* ── CARDS AGRICULTEURS ─────────────────────────── */
+    .ag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
+    .ag-card{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:18px;transition:all .2s;cursor:pointer}
+    .ag-card:hover{border-color:var(--gold-mid);box-shadow:0 4px 16px rgba(0,0,0,0.08);transform:translateY(-2px)}
+    .ag-card.alert-card{border-color:rgba(220,38,38,0.3);background:var(--red-pale)}
+    .ag-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    .ag-avatar{width:42px;height:42px;background:linear-gradient(135deg,var(--green),#14532d);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+    .ag-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text)}
+    .ag-username{font-size:11px;color:var(--mute);font-family:monospace}
+    .ag-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+    .ag-stat{background:var(--surf2);border-radius:8px;padding:8px;text-align:center}
+    .ag-stat-val{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--green)}
+    .ag-stat-lbl{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:1px}
+    .ag-footer{display:flex;gap:6px;flex-wrap:wrap}
+    .btn-sm{border:none;border-radius:7px;padding:6px 12px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+    .btn-view{background:var(--gold-light);color:var(--amber);border:1px solid rgba(217,119,6,0.3)}
+    .btn-view:hover{background:#fde68a}
+    .btn-green{background:var(--green-pale);color:var(--green);border:1px solid rgba(22,163,74,0.3)}
+    .btn-green:hover{background:#bbf7d0}
+    .btn-red{background:var(--red-pale);color:var(--red);border:1px solid rgba(220,38,38,0.3)}
+    .btn-red:hover{background:#fecaca}
+    .btn-blue{background:var(--blue-pale);color:var(--blue);border:1px solid rgba(37,99,235,0.3)}
+    .btn-blue:hover{background:#bfdbfe}
+    .btn-gray{background:var(--surf2);color:var(--dim);border:1px solid var(--bdr)}
+    .btn-gray:hover{background:#e2e8f0}
+
+    /* ── TABLE ──────────────────────────────────────── */
+    .tw{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:20px}
+    .th{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--bdr);flex-wrap:wrap;gap:8px}
+    .th-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text)}
+    .th-sub{font-size:12px;color:var(--mute)}
+    .ts{overflow-x:auto;max-height:440px;overflow-y:auto}
+    table{width:100%;border-collapse:collapse}
+    thead th{background:#f8fafc;font-family:'Syne',sans-serif;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);text-align:left;padding:11px 16px;position:sticky;top:0;z-index:2;border-bottom:1px solid var(--bdr)}
+    tbody tr{border-bottom:1px solid var(--bdr);transition:background .12s}
+    tbody tr:hover{background:var(--surf2)}
+    tbody tr:last-child{border-bottom:none}
+    td{padding:11px 16px;font-size:13px;color:var(--dim)}
+    td.td-strong{color:var(--text);font-weight:500}
+
+    /* ── BADGES ─────────────────────────────────────── */
+    .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:50px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;gap:4px}
+    .b-actif    {background:var(--green-pale);color:var(--green);border:1px solid rgba(22,163,74,0.3)}
+    .b-attente  {background:var(--gold-light);color:var(--amber);border:1px solid rgba(217,119,6,0.3)}
+    .b-rejete   {background:var(--red-pale);color:var(--red);border:1px solid rgba(220,38,38,0.3)}
+    .b-inactif  {background:var(--surf2);color:var(--mute);border:1px solid var(--bdr)}
+    .b-critique {background:var(--red-pale);color:var(--red);border:1px solid rgba(220,38,38,0.3)}
+    .b-avert    {background:var(--gold-light);color:var(--amber);border:1px solid rgba(217,119,6,0.3)}
+    .b-agri     {background:var(--green-pale);color:var(--green)}
+    .b-invite   {background:var(--blue-pale);color:var(--blue)}
+
+    /* ── PENDING ALERT ──────────────────────────────── */
+    .alert-banner{display:flex;align-items:center;gap:12px;background:var(--gold-light);border:1px solid rgba(217,119,6,0.3);border-radius:12px;padding:14px 18px;margin-bottom:18px}
+    .alert-banner-icon{font-size:22px;flex-shrink:0}
+    .alert-banner-text{font-size:13px;color:var(--amber);font-weight:500}
+    .alert-banner strong{font-weight:700}
+
+    /* ── MODAL ──────────────────────────────────────── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--surf);border-radius:18px;width:100%;max-width:860px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:fi .3s ease}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--bdr);position:sticky;top:0;background:var(--surf);z-index:2}
+    .modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text)}
+    .modal-close{background:var(--surf2);border:none;border-radius:8px;padding:7px 12px;font-size:18px;cursor:pointer;color:var(--dim);transition:all .15s}
+    .modal-close:hover{background:var(--bdr);color:var(--text)}
+    .modal-body{padding:24px}
+    /* Modal KPIs */
+    .modal-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+    .modal-kpi{background:var(--surf2);border-radius:10px;padding:12px 14px;text-align:center}
+    .modal-kpi-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--green)}
+    .modal-kpi-lbl{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+    /* Sensor cards in modal */
+    .sensor-mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+    .sensor-mini{background:var(--surf2);border-radius:10px;padding:12px;border:1px solid var(--bdr)}
+    .sensor-mini-type{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+    .sensor-mini-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--green);line-height:1}
+    .sensor-mini-unit{font-size:12px;color:var(--dim);margin-left:3px}
+    /* Chart in modal */
+    .modal-chart-wrap{height:220px;position:relative;margin-bottom:16px}
+
+    /* ── ALERTES GLOBALES ───────────────────────────── */
+    .alert-row-critique{background:rgba(220,38,38,0.04)}
+    .alert-row-avert{background:rgba(217,119,6,0.03)}
+
+    /* ── RAPPORT TABLE ──────────────────────────────── */
+    .rapport-val-good{color:var(--green);font-weight:700;font-family:'Syne',sans-serif}
+    .rapport-val-warn{color:var(--amber);font-weight:700;font-family:'Syne',sans-serif}
+    .rapport-val-bad {color:var(--red);font-weight:700;font-family:'Syne',sans-serif}
+
+    /* ── MISC ───────────────────────────────────────── */
+    .loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--mute);gap:10px;font-size:13px}
+    .sp{width:16px;height:16px;border:2px solid var(--bdr);border-top-color:var(--gold-mid);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .empty{text-align:center;padding:50px 20px;color:var(--mute);font-size:13px}
+    .empty-icon{font-size:36px;margin-bottom:10px;opacity:.4}
+    #toast-c{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+    .toast{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:11px 16px;font-size:13px;color:var(--text);max-width:300px;animation:ti .3s ease;box-shadow:0 4px 20px rgba(0,0,0,0.12)}
+    .toast.ok{border-color:rgba(22,163,74,0.4);color:var(--green)}
+    .toast.err{border-color:rgba(220,38,38,0.4);color:var(--red)}
+    @keyframes ti{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:var(--surf2)}
+    ::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+    ::-webkit-scrollbar-thumb:hover{background:var(--mute)}
+    .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse 2s infinite;display:inline-block;margin-right:4px}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+    select,input[type="text"],input[type="number"]{background:var(--surf2);border:1px solid var(--bdr);color:var(--text);border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;transition:border-color .2s}
+    select:focus,input:focus{border-color:var(--gold-mid)}
+    .btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-mid));color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(217,119,6,0.3)}
+    @media(max-width:768px){.sidebar{display:none}.main{padding:16px}}
+  </style>
+</head>
+<body>
+<div id="toast-c"></div>
+
+<!-- Modal détail agriculteur -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Détail agriculteur</div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"><div class="loading"><div class="sp"></div>Chargement...</div></div>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">👑</div>
+      <div><h1>Admin</h1><span>AgroSense</span></div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Principal</div>
+      <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">📊</span> Vue d'ensemble</button>
+      <button class="nav-item" onclick="showPage('agriculteurs')" id="nav-agriculteurs"><span class="nav-icon">🌾</span> Agriculteurs</button>
+      <button class="nav-item" onclick="showPage('rapport')" id="nav-rapport"><span class="nav-icon">📋</span> Rapport global</button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Utilisateurs</div>
+      <button class="nav-item" onclick="showPage('pending')" id="nav-pending"><span class="nav-icon">⏳</span> En attente <span class="nav-badge" id="badge-pending" style="display:none">0</span></button>
+      <button class="nav-item" onclick="showPage('users')" id="nav-users"><span class="nav-icon">👥</span> Tous les comptes</button>
+      <button class="nav-item" onclick="showPage('connected')" id="nav-connected"><span class="nav-icon">🟢</span> Connectés (24h)</button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Surveillance</div>
+      <button class="nav-item" onclick="showPage('alertes')" id="nav-alertes"><span class="nav-icon">🚨</span> Alertes globales <span class="nav-badge" id="badge-alertes" style="display:none">!</span></button>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">👑</div>
+        <div><div class="user-name" id="admin-nom">Admin</div><div class="user-role">Administrateur</div></div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">🚪 Déconnexion</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════ PAGE DASHBOARD ═══════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">📊 Vue d'ensemble</div>
+      <div class="page-sub" id="last-update">Chargement...</div>
+
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-icon">🌾</div><div class="kpi-val" id="k-agri" style="color:var(--green)">—</div><div class="kpi-lbl">Agriculteurs actifs</div></div>
+        <div class="kpi"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-icon">👁️</div><div class="kpi-val" id="k-inv" style="color:var(--blue)">—</div><div class="kpi-lbl">Invités actifs</div></div>
+        <div class="kpi"><div class="kpi-accent" style="background:var(--amber)"></div><div class="kpi-icon">⏳</div><div class="kpi-val" id="k-att" style="color:var(--amber)">—</div><div class="kpi-lbl">En attente</div></div>
+        <div class="kpi"><div class="kpi-accent" style="background:var(--purple)"></div><div class="kpi-icon">🌿</div><div class="kpi-val" id="k-parc" style="color:var(--purple)">—</div><div class="kpi-lbl">Parcelles totales</div></div>
+        <div class="kpi"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-icon">📡</div><div class="kpi-val" id="k-cap" style="color:var(--green)">—</div><div class="kpi-lbl">Capteurs actifs</div></div>
+        <div class="kpi"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-icon">📊</div><div class="kpi-val" id="k-mes" style="color:var(--blue)">—</div><div class="kpi-lbl">Mesures 24h</div></div>
+      </div>
+
+      <div class="st">🟢 Agriculteurs connectés récemment</div>
+      <div id="online-cards" class="ag-grid"><div class="loading"><div class="sp"></div></div></div>
+
+      <div class="st">🚨 Dernières alertes critiques</div>
+      <div id="dash-alertes-wrap" class="tw">
+        <div class="ts"><table><thead><tr><th>Agriculteur</th><th>Type</th><th>Valeur</th><th>Niveau</th><th>Heure</th></tr></thead>
+        <tbody id="dash-alertes-tbody"><tr><td colspan="5"><div class="loading"><div class="sp"></div></div></td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ═══════ PAGE AGRICULTEURS ═══════ -->
+    <div class="page" id="page-agriculteurs">
+      <div class="page-title">🌾 Agriculteurs</div>
+      <div class="page-sub">Cliquez sur un agriculteur pour voir ses statistiques détaillées</div>
+      <div class="ag-grid" id="ag-cards"><div class="loading"><div class="sp"></div>Chargement...</div></div>
+    </div>
+
+    <!-- ═══════ PAGE RAPPORT GLOBAL ═══════ -->
+    <div class="page" id="page-rapport">
+      <div class="page-title">📋 Rapport global</div>
+      <div class="page-sub">Comparaison de tous les agriculteurs actifs</div>
+      <div class="tw">
+        <div class="th"><span class="th-title">📊 Tableau comparatif (24h)</span>
+          <button class="btn-primary" onclick="exportRapportCSV()">⬇ Exporter CSV</button>
+        </div>
+        <div class="ts">
+          <table><thead><tr><th>Agriculteur</th><th>Parcelles</th><th>Capteurs</th><th>Mesures 24h</th><th>Alertes</th><th>Statut</th></tr></thead>
+          <tbody id="rapport-tbody"><tr><td colspan="6"><div class="loading"><div class="sp"></div></div></td></tr></tbody></table>
+        </div>
+      </div>
+      <div id="rapport-charts" class="chart-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px">
+        <div style="background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:20px">
+          <div class="st" style="font-size:13px">📊 Mesures par agriculteur</div>
+          <div style="height:220px;position:relative"><canvas id="ch-rapport-mesures"></canvas></div>
+        </div>
+        <div style="background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:20px">
+          <div class="st" style="font-size:13px">🚨 Alertes par agriculteur</div>
+          <div style="height:220px;position:relative"><canvas id="ch-rapport-alertes"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ PAGE PENDING ═══════ -->
+    <div class="page" id="page-pending">
+      <div class="page-title">⏳ Inscriptions en attente</div>
+      <div class="page-sub">Validez ou rejetez les demandes d'inscription</div>
+      <div id="pending-banner" style="display:none" class="alert-banner">
+        <div class="alert-banner-icon">⚠️</div>
+        <div class="alert-banner-text"><strong id="pending-count">0</strong> inscription(s) attendent votre validation</div>
+      </div>
+      <div class="tw">
+        <div class="th"><span class="th-title">📋 Demandes reçues</span></div>
+        <div class="ts"><table><thead><tr><th>Nom</th><th>Identifiant</th><th>Rôle</th><th>Date demande</th><th>Actions</th></tr></thead>
+        <tbody id="pending-tbody"><tr><td colspan="5"><div class="loading"><div class="sp"></div></div></td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ═══════ PAGE USERS ═══════ -->
+    <div class="page" id="page-users">
+      <div class="page-title">👥 Tous les comptes</div>
+      <div class="page-sub">Gestion complète des utilisateurs</div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <select id="filter-role" onchange="filterUsers()">
+          <option value="">Tous les rôles</option>
+          <option value="agriculteur">🌾 Agriculteurs</option>
+          <option value="invite">👁️ Invités</option>
+        </select>
+        <select id="filter-statut" onchange="filterUsers()">
+          <option value="">Tous les statuts</option>
+          <option value="actif">✅ Actifs</option>
+          <option value="en_attente">⏳ En attente</option>
+          <option value="inactif">⏸ Inactifs</option>
+          <option value="rejeté">❌ Rejetés</option>
+        </select>
+        <span id="users-count" style="font-size:12px;color:var(--mute);align-self:center"></span>
+      </div>
+      <div class="tw">
+        <div class="ts"><table><thead><tr><th>Nom</th><th>Identifiant</th><th>Rôle</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead>
+        <tbody id="users-tbody"><tr><td colspan="6"><div class="loading"><div class="sp"></div></div></td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ═══════ PAGE CONNECTED ═══════ -->
+    <div class="page" id="page-connected">
+      <div class="page-title">🟢 Connectés récemment</div>
+      <div class="page-sub">Agriculteurs connectés dans les dernières 24 heures</div>
+      <div class="ag-grid" id="connected-cards"><div class="loading"><div class="sp"></div></div></div>
+    </div>
+
+    <!-- ═══════ PAGE ALERTES GLOBALES ═══════ -->
+    <div class="page" id="page-alertes">
+      <div class="page-title">🚨 Alertes globales</div>
+      <div class="page-sub">Toutes les anomalies détectées sur l'ensemble des exploitations (24h)</div>
+      <div class="tw">
+        <div class="th">
+          <span class="th-title">⚠️ Anomalies détectées</span>
+          <button class="btn-primary" onclick="exportAlertesCSV()">⬇ Export CSV</button>
+        </div>
+        <div class="ts"><table><thead><tr><th>Niveau</th><th>Agriculteur</th><th>Parcelle</th><th>Type</th><th>Valeur</th><th>Message</th><th>Heure</th></tr></thead>
+        <tbody id="alertes-tbody"><tr><td colspan="7"><div class="loading"><div class="sp"></div></div></td></tr></tbody></table></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+Chart.defaults.color='#94a3b8'; Chart.defaults.borderColor='#e2e8f0';
+let allUsers=[], allAlertes=[], rapportData=[], charts={};
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function toast(msg,type='ok'){const c=document.getElementById('toast-c');const el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;c.appendChild(el);setTimeout(()=>el.remove(),3500);}
+function fmtDate(iso){if(!iso)return'—';const d=new Date(iso);return d.toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
+
+async function doLogout(){await fetch('/api/auth/logout',{method:'POST',credentials:'include'});window.location.href='/admin/login';}
+
+// ── NAVIGATION ─────────────────────────────────────────────
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  const loaders={
+    'agriculteurs':loadAgriculteurs,
+    'rapport':loadRapport,
+    'pending':loadPending,
+    'users':loadUsers,
+    'connected':loadConnected,
+    'alertes':loadAlertes,
+  };
+  if(loaders[id]) loaders[id]();
+}
+
+// ── STATS GLOBALES ─────────────────────────────────────────
+async function loadStats(){
+  const res=await fetch('/api/admin/stats',{credentials:'include'});
+  const d=await res.json();
+  document.getElementById('k-agri').textContent=d.total_agriculteurs;
+  document.getElementById('k-inv').textContent=d.total_invites;
+  document.getElementById('k-att').textContent=d.en_attente;
+  document.getElementById('k-parc').textContent=d.total_parcelles;
+  document.getElementById('k-cap').textContent=d.total_capteurs;
+  document.getElementById('k-mes').textContent=d.total_mesures_24h.toLocaleString('fr-FR');
+  document.getElementById('last-update').textContent='Mis à jour le '+new Date().toLocaleTimeString('fr-FR');
+  if(d.en_attente>0){
+    document.getElementById('badge-pending').textContent=d.en_attente;
+    document.getElementById('badge-pending').style.display='inline-block';
+  }
+}
+
+// ── DASHBOARD ONLINE + ALERTES ─────────────────────────────
+async function loadDashboardOnline(){
+  const res=await fetch('/api/admin/connected',{credentials:'include'});
+  const users=await res.json();
+  const grid=document.getElementById('online-cards');
+  if(!users.length){grid.innerHTML='<div class="empty"><div class="empty-icon">😴</div>Aucun agriculteur connecté dans les 24h</div>';return;}
+  grid.innerHTML=users.map(u=>`
+    <div class="ag-card" onclick="showAgDetail('${u.id}')">
+      <div class="ag-head">
+        <div class="ag-avatar">🌾</div>
+        <div><div class="ag-name">${u.nom}</div><div class="ag-username"><span class="pulse"></span>Connecté</div></div>
+      </div>
+      <div class="ag-footer">
+        <span class="btn-sm btn-view" onclick="event.stopPropagation();showAgDetail('${u.id}')">📊 Voir stats</span>
+        <span style="font-size:11px;color:var(--mute);align-self:center">Dernière connexion : ${fmtDate(u.last_login)}</span>
+      </div>
+    </div>`).join('');
+}
+
+async function loadDashboardAlertes(){
+  const res=await fetch('/api/admin/global_alertes',{credentials:'include'});
+  const alertes=(await res.json()).slice(0,8);
+  const tbody=document.getElementById('dash-alertes-tbody');
+  if(!alertes.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty">✅ Aucune alerte récente</div></td></tr>';return;}
+  if(alertes.length>0){document.getElementById('badge-alertes').style.display='inline-block';}
+  tbody.innerHTML=alertes.map(a=>`<tr class="alert-row-${a.niveau}">
+    <td class="td-strong">${a.parcelle_nom||'—'}</td>
+    <td>${a.type}</td>
+    <td style="font-family:'Syne',sans-serif;font-weight:800;color:${a.niveau==='critique'?'var(--red)':'var(--amber)'}">${a.valeur} ${a.unite}</td>
+    <td><span class="badge b-${a.niveau==='critique'?'critique':'avert'}">${a.niveau==='critique'?'🔴 Critique':'🟡 Avertissement'}</span></td>
+    <td style="font-size:11px;color:var(--mute);font-family:monospace">${fmtDate(a.timestamp)}</td>
+  </tr>`).join('');
+}
+
+// ── AGRICULTEURS ───────────────────────────────────────────
+async function loadAgriculteurs(){
+  const [rapRes,allRes]=await Promise.all([
+    fetch('/api/admin/rapport_global',{credentials:'include'}),
+    fetch('/api/admin/users',{credentials:'include'})
+  ]);
+  const rapport=await rapRes.json();
+  const allU=await allRes.json();
+  const grid=document.getElementById('ag-cards');
+  if(!rapport.length){grid.innerHTML='<div class="empty"><div class="empty-icon">🌾</div>Aucun agriculteur actif</div>';return;}
+  grid.innerHTML=rapport.map(ag=>{
+    const hasAlert=ag.nb_alertes>0;
+    return `<div class="ag-card ${hasAlert?'alert-card':''}" onclick="showAgDetail('${ag.id}')">
+      <div class="ag-head">
+        <div class="ag-avatar">🌾</div>
+        <div><div class="ag-name">${ag.nom}</div><div class="ag-username">@${ag.username}</div></div>
+        ${hasAlert?`<span class="badge b-critique" style="margin-left:auto">⚠️ ${ag.nb_alertes}</span>`:''}
+      </div>
+      <div class="ag-stats">
+        <div class="ag-stat"><div class="ag-stat-val">${ag.nb_parcelles}</div><div class="ag-stat-lbl">Parcelles</div></div>
+        <div class="ag-stat"><div class="ag-stat-val">${ag.nb_capteurs}</div><div class="ag-stat-lbl">Capteurs</div></div>
+        <div class="ag-stat"><div class="ag-stat-val" style="color:var(--blue)">${ag.nb_mesures.toLocaleString('fr-FR')}</div><div class="ag-stat-lbl">Mesures 24h</div></div>
+      </div>
+      <div class="ag-footer">
+        <span class="btn-sm btn-view">📊 Statistiques</span>
+        <span class="btn-sm btn-green">🌡️ Mesures</span>
+        <span class="btn-sm btn-red" style="${!hasAlert?'display:none':''}">🚨 Alertes (${ag.nb_alertes})</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── MODAL DÉTAIL AGRICULTEUR ───────────────────────────────
+async function showAgDetail(agId){
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('modal-body').innerHTML='<div class="loading"><div class="sp"></div>Chargement des données...</div>';
+  document.getElementById('modal-title').textContent='Chargement...';
+
+  const res=await fetch(`/api/admin/agriculteur/${agId}/stats`,{credentials:'include'});
+  const d=await res.json();
+  document.getElementById('modal-title').textContent=`🌾 ${d.agriculteur.nom}`;
+
+  const icons={'température':'🌡️','humidité':'💧','pH sol':'🧪','pluviométrie':'🌧️','vitesse vent':'💨','luminosité':'☀️','pression':'🌐'};
+  const colors={'température':'var(--amber)','humidité':'var(--blue)','pH sol':'var(--green)','pluviométrie':'#0ea5e9','vitesse vent':'#7c3aed','luminosité':'#f59e0b','pression':'#475569'};
+
+  // Dernières lectures
+  const sensorCards = Object.entries(d.derniers).map(([type,m])=>`
+    <div class="sensor-mini">
+      <div class="sensor-mini-type">${icons[type]||'📡'} ${type}</div>
+      <div style="margin-top:6px"><span class="sensor-mini-val" style="color:${colors[type]||'var(--green)'}">${m.valeur}</span><span class="sensor-mini-unit">${m.unite}</span></div>
+      <div style="font-size:10px;color:var(--mute);margin-top:4px">${m.parcelle_nom||'—'}</div>
+    </div>`).join('');
+
+  // Stats température par parcelle
+  const tempRows = d.stats_temp.map(s=>`
+    <div class="stat-row" style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr)">
+      <span style="font-size:13px;color:var(--dim)">🌿 ${s.parcelle}</span>
+      <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--amber)">${s.moyenne}°C</span>
+      <span style="font-size:11px;color:var(--mute)">${s.min}° – ${s.max}°</span>
+    </div>`).join('') || '<div style="color:var(--mute);font-size:13px">Aucune donnée</div>';
+
+  document.getElementById('modal-body').innerHTML = `
+    <!-- KPIs -->
+    <div class="modal-kpi-grid">
+      <div class="modal-kpi"><div class="modal-kpi-val">${d.nb_parcelles}</div><div class="modal-kpi-lbl">Parcelles</div></div>
+      <div class="modal-kpi"><div class="modal-kpi-val">${d.nb_capteurs}</div><div class="modal-kpi-lbl">Capteurs</div></div>
+      <div class="modal-kpi"><div class="modal-kpi-val" style="color:var(--blue)">${d.nb_mesures_24h.toLocaleString('fr-FR')}</div><div class="modal-kpi-lbl">Mesures 24h</div></div>
+      <div class="modal-kpi"><div class="modal-kpi-val" style="color:var(--purple)">${d.nb_mesures_7j.toLocaleString('fr-FR')}</div><div class="modal-kpi-lbl">Mesures 7j</div></div>
+      <div class="modal-kpi"><div class="modal-kpi-val" style="color:${d.nb_alertes>0?'var(--red)':'var(--green)'}">${d.nb_alertes}</div><div class="modal-kpi-lbl">Alertes 24h</div></div>
+    </div>
+
+    <!-- Dernières lectures -->
+    <div class="st" style="font-size:13px">⚡ Dernières lectures des capteurs</div>
+    <div class="sensor-mini-grid" style="margin-bottom:20px">${sensorCards||'<div style="color:var(--mute);font-size:13px">Aucune mesure récente</div>'}</div>
+
+    <!-- Températures par parcelle -->
+    <div class="st" style="font-size:13px">🌡️ Températures moyennes par parcelle (24h)</div>
+    <div style="margin-bottom:20px">${tempRows}</div>
+
+    <!-- Graphique évolution -->
+    <div class="st" style="font-size:13px">📈 Évolution température & humidité (24h)</div>
+    <div class="modal-chart-wrap"><canvas id="modal-chart"></canvas></div>
+
+    <!-- Parcelles listées -->
+    <div class="st" style="font-size:13px;margin-top:8px">🌿 Parcelles de l'exploitation</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:4px">
+      ${d.parcelles.map(p=>`<div style="background:var(--green-pale);border-radius:8px;padding:10px 12px">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--green)">${p.nom}</div>
+        <div style="font-size:11px;color:var(--dim)">${p.culture||'—'} · ${p.superficie||0} ha</div>
+      </div>`).join('')}
+    </div>
+  `;
+
+  // Charger les mesures pour le graphique
+  const mesRes=await fetch(`/api/admin/agriculteur/${agId}/mesures?heures=24&limit=300`,{credentials:'include'});
+  const mesures=await mesRes.json();
+  const hours=[...Array(24).keys()];
+  const labels=hours.map(h=>`${String(h).padStart(2,'0')}h`);
+  const avg=arr=>arr.length?+(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(2):null;
+  dc('modal');
+  const ctx=document.getElementById('modal-chart');
+  if(ctx){
+    charts['modal']=new Chart(ctx,{type:'line',data:{labels,datasets:[
+      {label:'Température (°C)',data:hours.map(h=>{const v=mesures.filter(m=>m.type==='température'&&new Date(m.timestamp).getHours()===h).map(m=>m.valeur);return avg(v);}),borderColor:'#d97706',backgroundColor:'#d9770620',tension:.4,fill:true,yAxisID:'y'},
+      {label:'Humidité (%)',data:hours.map(h=>{const v=mesures.filter(m=>m.type==='humidité'&&new Date(m.timestamp).getHours()===h).map(m=>m.valeur);return avg(v);}),borderColor:'#2563eb',backgroundColor:'#2563eb20',tension:.4,fill:true,yAxisID:'y2'},
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:'DM Sans'},boxWidth:12}}},scales:{y:{position:'left',grid:{color:'rgba(226,232,240,0.6)'},title:{display:true,text:'°C'}},y2:{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'%'}},x:{grid:{color:'rgba(226,232,240,0.6)'}}}}});
+  }
+}
+
+function closeModal(e){if(e.target===document.getElementById('modal-overlay')) closeModalDirect();}
+function closeModalDirect(){document.getElementById('modal-overlay').classList.remove('open');dc('modal');}
+
+// ── RAPPORT GLOBAL ─────────────────────────────────────────
+async function loadRapport(){
+  const res=await fetch('/api/admin/rapport_global',{credentials:'include'});
+  rapportData=await res.json();
+  const tbody=document.getElementById('rapport-tbody');
+  if(!rapportData.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty">Aucun agriculteur</div></td></tr>';return;}
+  tbody.innerHTML=rapportData.map(ag=>{
+    const cls=ag.nb_alertes>3?'rapport-val-bad':ag.nb_alertes>0?'rapport-val-warn':'rapport-val-good';
+    return `<tr>
+      <td><span style="cursor:pointer;color:var(--amber);font-weight:600" onclick="showAgDetail('${ag.id}')">🌾 ${ag.nom}</span></td>
+      <td class="rapport-val-good">${ag.nb_parcelles}</td>
+      <td class="rapport-val-good">${ag.nb_capteurs}</td>
+      <td style="font-family:'Syne',sans-serif;font-weight:700;color:var(--blue)">${ag.nb_mesures.toLocaleString('fr-FR')}</td>
+      <td class="${cls}">${ag.nb_alertes}</td>
+      <td><span class="badge ${ag.nb_alertes>0?'b-critique':'b-actif'}">${ag.nb_alertes>0?'⚠️ Alertes':'✅ Normal'}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Charts
+  const noms=rapportData.map(a=>a.nom);
+  const clrs=['#16a34a','#2563eb','#d97706','#7c3aed','#0ea5e9','#f59e0b'];
+  dc('r-mes'); dc('r-al');
+  charts['r-mes']=new Chart(document.getElementById('ch-rapport-mesures'),{type:'bar',data:{labels:noms,datasets:[{label:'Mesures 24h',data:rapportData.map(a=>a.nb_mesures),backgroundColor:clrs,borderColor:clrs,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(226,232,240,0.6)'}},x:{grid:{display:false}}}}});
+  charts['r-al']=new Chart(document.getElementById('ch-rapport-alertes'),{type:'bar',data:{labels:noms,datasets:[{label:'Alertes',data:rapportData.map(a=>a.nb_alertes),backgroundColor:rapportData.map(a=>a.nb_alertes>0?'rgba(220,38,38,0.7)':'rgba(22,163,74,0.5)'),borderColor:rapportData.map(a=>a.nb_alertes>0?'#dc2626':'#16a34a'),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(226,232,240,0.6)'}},x:{grid:{display:false}}}}});
+}
+
+function exportRapportCSV(){
+  if(!rapportData.length){toast('Aucune donnée','err');return;}
+  const header=['Nom','Identifiant','Parcelles','Capteurs','Mesures 24h','Alertes'];
+  const rows=rapportData.map(a=>[a.nom,a.username,a.nb_parcelles,a.nb_capteurs,a.nb_mesures,a.nb_alertes].join(';'));
+  const csv=[header.join(';'),...rows].join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='rapport_global.csv';a.click();
+  toast('✅ CSV exporté');
+}
+
+// ── PENDING ────────────────────────────────────────────────
+async function loadPending(){
+  const res=await fetch('/api/admin/users',{credentials:'include'});
+  const pending=(await res.json()).filter(u=>u.statut==='en_attente');
+  const tbody=document.getElementById('pending-tbody');
+  const banner=document.getElementById('pending-banner');
+  if(pending.length>0){banner.style.display='flex';document.getElementById('pending-count').textContent=pending.length;}
+  else banner.style.display='none';
+  if(!pending.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-icon">✅</div>Aucune inscription en attente</div></td></tr>';return;}
+  tbody.innerHTML=pending.map(u=>`<tr>
+    <td class="td-strong">${u.nom}</td>
+    <td style="font-family:monospace;color:var(--amber)">${u.username}</td>
+    <td><span class="badge b-${u.role}">${u.role}</span></td>
+    <td style="font-size:12px;color:var(--mute)">${fmtDate(u.created_at)}</td>
+    <td><div style="display:flex;gap:5px"><button class="btn-sm btn-green" onclick="action('${u.id}','valider')">✅ Valider</button><button class="btn-sm btn-red" onclick="action('${u.id}','rejeter')">❌ Rejeter</button></div></td>
+  </tr>`).join('');
+}
+
+// ── USERS ──────────────────────────────────────────────────
+async function loadUsers(){
+  const res=await fetch('/api/admin/users',{credentials:'include'});
+  allUsers=await res.json();
+  filterUsers();
+}
+function filterUsers(){
+  const role=document.getElementById('filter-role').value;
+  const statut=document.getElementById('filter-statut').value;
+  let filtered=allUsers;
+  if(role) filtered=filtered.filter(u=>u.role===role);
+  if(statut) filtered=filtered.filter(u=>u.statut===statut);
+  document.getElementById('users-count').textContent=`${filtered.length} utilisateur(s)`;
+  const tbody=document.getElementById('users-tbody');
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty">Aucun résultat</div></td></tr>';return;}
+  tbody.innerHTML=filtered.map(u=>`<tr>
+    <td class="td-strong">${u.nom}</td>
+    <td style="font-family:monospace;font-size:12px;color:var(--amber)">${u.username}</td>
+    <td><span class="badge b-${u.role}">${u.role}</span></td>
+    <td><span class="badge b-${u.statut.replace('é','e')}">${u.statut}</span></td>
+    <td style="font-size:12px;color:var(--mute)">${fmtDate(u.last_login)}</td>
+    <td><div style="display:flex;gap:4px;flex-wrap:wrap">
+      ${u.role==='agriculteur'?`<button class="btn-sm btn-view" onclick="showAgDetail('${u.id}')">📊 Stats</button>`:''}
+      ${u.statut==='en_attente'?`<button class="btn-sm btn-green" onclick="action('${u.id}','valider')">✅</button><button class="btn-sm btn-red" onclick="action('${u.id}','rejeter')">❌</button>`:''}
+      ${u.statut==='actif'?`<button class="btn-sm btn-gray" onclick="action('${u.id}','desactiver')">⏸</button>`:''}
+      ${['inactif','rejeté'].includes(u.statut)?`<button class="btn-sm btn-green" onclick="action('${u.id}','activer')">▶</button>`:''}
+    </div></td>
+  </tr>`).join('');
+}
+
+// ── CONNECTED ──────────────────────────────────────────────
+async function loadConnected(){
+  const res=await fetch('/api/admin/connected',{credentials:'include'});
+  const users=await res.json();
+  const grid=document.getElementById('connected-cards');
+  if(!users.length){grid.innerHTML='<div class="empty"><div class="empty-icon">😴</div>Aucun agriculteur connecté dans les 24h</div>';return;}
+  grid.innerHTML=users.map(u=>`
+    <div class="ag-card" onclick="showAgDetail('${u.id}')">
+      <div class="ag-head">
+        <div class="ag-avatar">🌾</div>
+        <div><div class="ag-name">${u.nom}</div><div class="ag-username"><span class="pulse"></span>Actif récemment</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--mute);margin-bottom:12px">Dernière connexion : ${fmtDate(u.last_login)}</div>
+      <div class="ag-footer"><span class="btn-sm btn-view">📊 Voir statistiques</span></div>
+    </div>`).join('');
+}
+
+// ── ALERTES GLOBALES ───────────────────────────────────────
+async function loadAlertes(){
+  const res=await fetch('/api/admin/global_alertes',{credentials:'include'});
+  allAlertes=await res.json();
+  const tbody=document.getElementById('alertes-tbody');
+  if(!allAlertes.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">✅</div>Aucune alerte sur les 24 dernières heures</div></td></tr>';return;}
+  tbody.innerHTML=allAlertes.map(a=>`<tr class="alert-row-${a.niveau}">
+    <td><span class="badge b-${a.niveau==='critique'?'critique':'avert'}">${a.niveau==='critique'?'🔴 Critique':'🟡 Avertissement'}</span></td>
+    <td class="td-strong">${a.parcelle_nom||'—'}</td>
+    <td>${a.parcelle_nom||'—'}</td>
+    <td>${a.type}</td>
+    <td style="font-family:'Syne',sans-serif;font-weight:800;color:${a.niveau==='critique'?'var(--red)':'var(--amber)'}">${a.valeur} ${a.unite}</td>
+    <td style="font-size:12px">${a.message}</td>
+    <td style="font-size:11px;color:var(--mute);font-family:monospace">${fmtDate(a.timestamp)}</td>
+  </tr>`).join('');
+}
+
+function exportAlertesCSV(){
+  if(!allAlertes.length){toast('Aucune alerte','err');return;}
+  const header=['Niveau','Parcelle','Type','Valeur','Unité','Message','Horodatage'];
+  const rows=allAlertes.map(a=>[a.niveau,a.parcelle_nom||'',a.type,a.valeur,a.unite,a.message,a.timestamp].join(';'));
+  const csv=[header.join(';'),...rows].join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='alertes_globales.csv';a.click();
+  toast('✅ CSV exporté');
+}
+
+// ── ACTIONS UTILISATEURS ───────────────────────────────────
+async function action(uid,act){
+  const res=await fetch(`/api/admin/users/${uid}/${act}`,{method:'POST',credentials:'include'});
+  const data=await res.json();
+  if(res.ok){
+    const labels={'valider':'✅ Validé','rejeter':'❌ Rejeté','desactiver':'⏸ Désactivé','activer':'✅ Activé'};
+    toast(labels[act]||'Effectué');
+    loadStats();
+    const cur=document.querySelector('.page.active')?.id?.replace('page-','');
+    if(cur==='pending') loadPending();
+    if(cur==='users') loadUsers();
+    if(cur==='dashboard') loadDashboardAlertes();
+  } else toast(data.error||'Erreur','err');
+}
+
+// ── INIT ───────────────────────────────────────────────────
+async function init(){
+  const res=await fetch('/api/auth/me',{credentials:'include'});
+  if(!res.ok){window.location.href='/admin/login';return;}
+  const u=await res.json();
+  if(u.role!=='admin'){window.location.href='/login';return;}
+  document.getElementById('admin-nom').textContent=u.nom||u.username;
+  await loadStats();
+  await loadDashboardOnline();
+  await loadDashboardAlertes();
+  setInterval(()=>{loadStats();loadDashboardOnline();loadDashboardAlertes();},30000);
+}
+init();
+</script>
+</body>
+</html>
