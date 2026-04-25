@@ -16,26 +16,30 @@ CORS(app, supports_credentials=True)
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://mongo:27017/")
 # Connexion MongoDB — supporte Atlas (mongodb+srv://) et local
-client = None
-max_attempts = 3 if "mongodb+srv" in MONGO_URI else 10
-for _a in range(max_attempts):
+# Connexion MongoDB — ne bloque pas le démarrage sur Render
+def connect_mongo():
+    global client, db, users_col, parcelles_col, capteurs_col, mesures_col
+    uri = MONGO_URI
     try:
-        is_atlas = "mongodb+srv" in MONGO_URI
-        client = MongoClient(
-            MONGO_URI,
-            serverSelectionTimeoutMS=5000,
-            connectTimeoutMS=10000,
-            socketTimeoutMS=10000,
-        )
+        client = MongoClient(uri, serverSelectionTimeoutMS=8000, connectTimeoutMS=10000)
         client.admin.command("ping")
-        print(f"✅ MongoDB connecté (tentative {_a+1})")
-        break
-    except Exception as _e:
-        print(f"⏳ MongoDB pas prêt ({_a+1}/{max_attempts}) : {_e}")
-        if _a < max_attempts - 1:
-            time.sleep(3)
-if client is None:
-    raise RuntimeError("❌ MongoDB inaccessible après plusieurs tentatives.")
+        print("✅ MongoDB connecté")
+        db            = client["agro_iot"]
+        users_col     = db["utilisateurs"]
+        parcelles_col = db["parcelles"]
+        capteurs_col  = db["capteurs"]
+        mesures_col   = db["mesures"]
+        return True
+    except Exception as e:
+        print(f"❌ MongoDB erreur : {e}")
+        return False
+
+client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=8000, connectTimeoutMS=10000)
+db            = client["agro_iot"]
+users_col     = db["utilisateurs"]
+parcelles_col = db["parcelles"]
+capteurs_col  = db["capteurs"]
+mesures_col   = db["mesures"]
 
 db            = client["agro_iot"]
 users_col     = db["utilisateurs"]
