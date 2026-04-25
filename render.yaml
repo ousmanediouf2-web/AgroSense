@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: agrosense
+    env: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: MONGO_URI
+        sync: false          # à renseigner manuellement dans le dashboard Render
+      - key: SECRET_KEY
+        generateValue: true  # Render génère automatiquement une clé sécurisée
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11.0
