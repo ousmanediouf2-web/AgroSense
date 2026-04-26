@@ -136,6 +136,20 @@ def insertion_continue():
         except Exception as e:
             print(f"⚠️ Insertion erreur : {e}")
 
+
+# ── HEALTH CHECK (test que le serveur répond) ────────────────
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok", "time": datetime.utcnow().isoformat()}), 200
+
+@app.route("/api/ping")
+def ping():
+    try:
+        client.admin.command("ping")
+        return jsonify({"status": "ok", "mongodb": "connected"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "mongodb": str(e)}), 500
+
 # ── PAGES ────────────────────────────────────────────────────
 @app.route("/login")
 def login_page():
