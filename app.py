@@ -12,7 +12,15 @@ import random, threading, time, os, hashlib, secrets
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = os.getenv("SECRET_KEY", "agrosense_secret_2025_iot_secure")
-CORS(app, supports_credentials=True)
+
+# Config session pour HTTPS (Render)
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="None",
+)
+
+CORS(app, supports_credentials=True, origins="*")
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 
