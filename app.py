@@ -2,6 +2,7 @@
 AgroSense — Backend Flask pour Render + MongoDB Atlas
 """
 from flask import Flask, jsonify, request, send_from_directory, session, redirect, make_response
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_cors import CORS
 from pymongo import MongoClient, ASCENDING, DESCENDING
 from bson import ObjectId
@@ -11,11 +12,12 @@ from urllib.parse import quote_plus
 import random, threading, time, os, hashlib, secrets
 
 app = Flask(__name__, static_folder="static")
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 app.secret_key = os.getenv("SECRET_KEY", "agrosense_secret_cle_2025_render_ok")
 app.config.update(
-    SESSION_COOKIE_SECURE=False,
+    SESSION_COOKIE_SECURE=True,
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SAMESITE="None",
     PERMANENT_SESSION_LIFETIME=timedelta(days=7),
 )
 CORS(app, supports_credentials=True, origins="*")
