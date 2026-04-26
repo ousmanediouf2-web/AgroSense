@@ -148,11 +148,22 @@
     document.getElementById('btn-txt').style.display='none';
     document.getElementById('sp').style.display='block';
     document.getElementById('err').classList.remove('on');
+    // Timeout de 60 secondes (Render peut dormir)
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
     try{
-      const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({username:u,password:p,admin_route:true})});
+      showMsg('suc','⏳ Connexion en cours... (peut prendre 30-60s au premier accès)');
+      const res=await fetch('/api/auth/login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        credentials:'include',
+        signal: controller.signal,
+        body:JSON.stringify({username:u,password:p,admin_route:true})
+      });
+      clearTimeout(timeout);
       const data=await res.json();
       if(res.ok){
-        showMsg('suc','Connexion réussie, redirection...');
+        showMsg('suc','✅ Connexion réussie, redirection...');
         setTimeout(()=>window.location.href=data.redirect||'/admin',800);
       } else {
         showMsg('err',data.error||'Identifiant ou mot de passe incorrect');
@@ -161,7 +172,12 @@
         document.getElementById('sp').style.display='none';
       }
     }catch(e){
-      showMsg('err','Impossible de contacter le serveur.');
+      clearTimeout(timeout);
+      if(e.name === 'AbortError'){
+        showMsg('err','⏱️ Timeout — le serveur met trop de temps. Réessayez dans 30 secondes.');
+      } else {
+        showMsg('err','Erreur réseau : ' + e.message);
+      }
       btn.disabled=false;
       document.getElementById('btn-txt').style.display='inline';
       document.getElementById('sp').style.display='none';

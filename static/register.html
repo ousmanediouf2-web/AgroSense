@@ -140,7 +140,7 @@
         showMsg('err',data.error||'Erreur');
         btn.disabled=false; document.getElementById('btn-txt').style.display='block'; document.getElementById('sp').style.display='none';
       }
-    }catch(e){ showMsg('err','Serveur inaccessible.'); btn.disabled=false; document.getElementById('btn-txt').style.display='block'; document.getElementById('sp').style.display='none'; }
+    }catch(e){ showMsg('err','Erreur réseau : ' + e.message + ' — Réessayez (serveur peut être en veille)'); btn.disabled=false; document.getElementById('btn-txt').style.display='block'; document.getElementById('sp').style.display='none'; }
   }
 </script>
 </body>
