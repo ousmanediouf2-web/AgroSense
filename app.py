@@ -14,10 +14,11 @@ app = Flask(__name__, static_folder="static")
 app.secret_key = os.getenv("SECRET_KEY", "agrosense_secret_2025_iot_secure")
 
 # Config session pour HTTPS (Render)
+# Config session pour HTTPS Render
 app.config.update(
-    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SECURE=False,   # False car Render gère HTTPS en proxy
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="None",
+    SESSION_COOKIE_SAMESITE="Lax",
 )
 
 CORS(app, supports_credentials=True, origins="*")
