@@ -870,7 +870,7 @@
     <p style="font-size:13px;color:#3d6b4a;margin:4px 0">
       Réalisé par <strong style="color:#16a34a">Ousmane Diouf</strong> &amp; <strong style="color:#16a34a">Baye Demba Ndiaye</strong>
     </p>
-    <p style="font-size:11px;color:#7a9e85;margin-top:3px">Projet IoT · Module Base de Données · 2025</p>
+    <p style="font-size:11px;color:#7a9e85;margin-top:3px">Projet IoT · Module Base de Données · 2026</p>
   </footer>
 
 </div><!-- end .app -->
@@ -1354,8 +1354,14 @@ async function addParcelle() {
   if (!nom) { toast('⚠️ Nom de parcelle requis','error'); return; }
   const res = await fetch('/api/parcelles', {method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({nom,culture,superficie})});
   const data = await res.json();
-  if (res.ok) { toast('✅ Parcelle ajoutée'); document.getElementById('new-parcelle-nom').value=''; document.getElementById('new-parcelle-culture').value=''; document.getElementById('new-parcelle-sup').value=''; loadGestion(); }
-  else toast('❌ '+data.error,'error');
+  if (res.ok) {
+    toast('✅ Parcelle ajoutée');
+    document.getElementById('new-parcelle-nom').value='';
+    document.getElementById('new-parcelle-culture').value='';
+    document.getElementById('new-parcelle-sup').value='';
+    loadGestion();
+    loadDashboard();
+  } else toast('❌ '+data.error,'error');
 }
 
 async function deleteParcelle(pid) {
@@ -1397,8 +1403,20 @@ async function addCapteur() {
   const type = document.getElementById('new-capteur-type').value;
   const res = await fetch('/api/capteurs', {method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({parcelle_id:selectedParcelleId, type})});
   const data = await res.json();
-  if (res.ok) { toast('✅ Capteur ajouté'); loadCapteursGestion(selectedParcelleId); loadGestion(); }
-  else toast('❌ '+data.error,'error');
+  if (res.ok) {
+    toast('✅ Capteur ajouté — génération des données...');
+    // Récupérer le capteur nouvellement créé et générer son historique
+    const capsRes = await fetch('/api/capteurs?parcelle_id='+selectedParcelleId, {credentials:'include'});
+    const caps = await capsRes.json();
+    // Générer historique pour tous les capteurs sans données
+    for (const cap of caps) {
+      await fetch('/api/capteurs/'+cap.id+'/generer_historique', {method:'POST', credentials:'include'});
+    }
+    toast('✅ Données générées ! Actualisez le tableau de bord.');
+    loadCapteursGestion(selectedParcelleId);
+    loadGestion();
+    loadDashboard();
+  } else toast('❌ '+data.error,'error');
 }
 
 async function deleteCapteur(cid) {
