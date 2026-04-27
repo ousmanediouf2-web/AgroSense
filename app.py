@@ -426,13 +426,17 @@ def base_filter(heures=24):
 @app.route("/api/mesures")
 @require_login
 def get_mesures():
-    heures=int(request.args.get("heures",24)); limit=int(request.args.get("limit",200))
-    typ=request.args.get("type"); pid=request.args.get("parcelle_id")
-    f=base_filter(heures)
-    if pid: f["parcelle_id"]=pid
-    if typ and typ!="Tous": f["type"]=typ
-    data=list(mesures_col.find(f,{"_id":0}).sort("timestamp",DESCENDING).limit(limit))
-    for d in data: d["timestamp"]=d["timestamp"].isoformat()
+    heures      = int(request.args.get("heures", 24))
+    limit       = int(request.args.get("limit", 200))
+    typ         = request.args.get("type")
+    pid         = request.args.get("parcelle_id")
+    parcelle_nom= request.args.get("parcelle_nom")
+    f = base_filter(heures)
+    if pid:          f["parcelle_id"]  = pid
+    if parcelle_nom: f["parcelle_nom"] = parcelle_nom
+    if typ and typ not in ["Tous", ""]: f["type"] = typ
+    data = list(mesures_col.find(f, {"_id":0}).sort("timestamp", DESCENDING).limit(limit))
+    for d in data: d["timestamp"] = d["timestamp"].isoformat()
     return jsonify(data)
 
 @app.route("/api/alertes")
