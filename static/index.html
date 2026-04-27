@@ -820,11 +820,6 @@
   <!-- TAB GESTION PARCELLES -->
   <div id="tab-gestion" class="tab-content">
     <div class="section-title">🌿 Mes Parcelles</div>
-    <div style="margin-bottom:16px">
-      <button class="btn" onclick="genererToutesDonnees()" style="background:linear-gradient(135deg,#0d9488,#0f766e)">
-        🔄 Générer données pour tous mes capteurs
-      </button>
-    </div>
     <div class="filters-bar" style="margin-bottom:20px">
       <div class="filter-group"><span class="filter-label">Nom de la parcelle</span><input type="text" id="new-parcelle-nom" placeholder="Ex: Champ Nord" style="min-width:200px"/></div>
       <div class="filter-group"><span class="filter-label">Culture</span><input type="text" id="new-parcelle-culture" placeholder="Ex: Maïs" style="min-width:140px"/></div>
@@ -1073,13 +1068,7 @@ async function loadMesures() {
   const limit    = document.getElementById('f-limit').value;
 
   document.getElementById('mesures-spinner').style.display = 'block';
-  // Convertir nom parcelle en paramètre correct
-  const parcelleParam = parcelle === 'Toutes' ? '' : parcelle;
-  const params = new URLSearchParams({});
-  if (parcelleParam) params.set('parcelle_nom', parcelleParam);
-  if (type !== 'Tous') params.set('type', type);
-  params.set('heures', heures);
-  params.set('limit', limit);
+  const params = new URLSearchParams({ parcelle, type, heures, limit });
   const res  = await fetch(`${API}/mesures?${params}`, {credentials:'include'});
   const data = await res.json();
   document.getElementById('mesures-spinner').style.display = 'none';
@@ -1134,7 +1123,7 @@ function resetFilters() {
 async function loadAlertes() {
   const sh = document.getElementById('seuil-hum').value;
   const st = document.getElementById('seuil-temp').value;
-  const res  = await fetch(`${API}/alertes?seuil_hum=${sh}&seuil_temp=${st}`, {credentials:'include'});
+  const res  = await fetch(`${API}/alertes?seuil_hum=${sh}&seuil_temp=${st}`);
   alertesData = await res.json();
 
   document.getElementById('alertes-count').textContent = `${alertesData.length} anomalie(s) détectée(s)`;
@@ -1410,28 +1399,24 @@ async function loadCapteursGestion(pid) {
 }
 
 async function addCapteur() {
-  if (!selectedParcelleId) { toast('⚠️ Sélectionnez une parcelle', 'error'); return; }
+  if (!selectedParcelleId) { toast('⚠️ Sélectionnez une parcelle','error'); return; }
   const type = document.getElementById('new-capteur-type').value;
-  const res = await fetch('/api/capteurs', {
-    method:'POST', credentials:'include',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({parcelle_id: selectedParcelleId, type})
-  });
+  const res = await fetch('/api/capteurs', {method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({parcelle_id:selectedParcelleId, type})});
   const data = await res.json();
   if (res.ok) {
-    toast('⏳ Capteur ajouté — génération des données en cours...');
-    // Générer données pour TOUS les capteurs sans mesures
-    const genRes = await fetch('/api/generer_toutes_donnees', {method:'POST', credentials:'include'});
-    const genData = await genRes.json();
-    toast('✅ ' + genData.message);
-    // Rafraîchir toutes les sections
+    toast('✅ Capteur ajouté — génération des données...');
+    // Récupérer le capteur nouvellement créé et générer son historique
+    const capsRes = await fetch('/api/capteurs?parcelle_id='+selectedParcelleId, {credentials:'include'});
+    const caps = await capsRes.json();
+    // Générer historique pour tous les capteurs sans données
+    for (const cap of caps) {
+      await fetch('/api/capteurs/'+cap.id+'/generer_historique', {method:'POST', credentials:'include'});
+    }
+    toast('✅ Données générées ! Actualisez le tableau de bord.');
     loadCapteursGestion(selectedParcelleId);
     loadGestion();
-    await loadDashboard();
-    if (document.getElementById('tab-mesures').classList.contains('active'))   loadMesures();
-    if (document.getElementById('tab-alertes').classList.contains('active'))   loadAlertes();
-    if (document.getElementById('tab-stats').classList.contains('active'))     loadStats();
-  } else toast('❌ ' + (data.error||'Erreur'), 'error');
+    loadDashboard();
+  } else toast('❌ '+data.error,'error');
 }
 
 async function deleteCapteur(cid) {
@@ -1439,17 +1424,6 @@ async function deleteCapteur(cid) {
   const res = await fetch('/api/capteurs/'+cid, {method:'DELETE', credentials:'include'});
   if (res.ok) { toast('✅ Capteur supprimé'); if(selectedParcelleId) loadCapteursGestion(selectedParcelleId); loadGestion(); }
   else toast('❌ Erreur','error');
-}
-
-async function genererToutesDonnees() {
-  toast('⏳ Génération des données en cours...');
-  const res = await fetch('/api/generer_toutes_donnees', {method:'POST', credentials:'include'});
-  const data = await res.json();
-  if (res.ok) {
-    toast('✅ ' + data.message);
-    loadDashboard();
-    loadGestion();
-  } else toast('❌ ' + (data.error||'Erreur'), 'error');
 }
 
 init();
