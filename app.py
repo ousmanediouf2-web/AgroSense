@@ -426,13 +426,17 @@ def base_filter(heures=24):
 @app.route("/api/mesures")
 @require_login
 def get_mesures():
-    heures=int(request.args.get("heures",24)); limit=int(request.args.get("limit",200))
-    typ=request.args.get("type"); pid=request.args.get("parcelle_id")
-    f=base_filter(heures)
-    if pid: f["parcelle_id"]=pid
-    if typ and typ!="Tous": f["type"]=typ
-    data=list(mesures_col.find(f,{"_id":0}).sort("timestamp",DESCENDING).limit(limit))
-    for d in data: d["timestamp"]=d["timestamp"].isoformat()
+    heures      = int(request.args.get("heures", 24))
+    limit       = int(request.args.get("limit", 200))
+    typ         = request.args.get("type")
+    pid         = request.args.get("parcelle_id")
+    parcelle_nom= request.args.get("parcelle_nom")
+    f = base_filter(heures)
+    if pid:          f["parcelle_id"]  = pid
+    if parcelle_nom: f["parcelle_nom"] = parcelle_nom
+    if typ and typ not in ["Tous", ""]: f["type"] = typ
+    data = list(mesures_col.find(f, {"_id":0}).sort("timestamp", DESCENDING).limit(limit))
+    for d in data: d["timestamp"] = d["timestamp"].isoformat()
     return jsonify(data)
 
 @app.route("/api/alertes")
@@ -486,6 +490,50 @@ def get_agriculteurs():
     ags=list(users_col.find({"role":"agriculteur","statut":"actif"},{"_id":1,"nom":1,"username":1}))
     for a in ags: a["id"]=str(a.pop("_id"))
     return jsonify(ags)
+
+
+# ── GÉNÉRATION DONNÉES ───────────────────────────────────────
+@app.route("/api/capteurs/<cid>/generer_historique", methods=["POST"])
+@require_role("agriculteur")
+def generer_historique(cid):
+    u = session["user"]
+    try:
+        cap = capteurs_col.find_one({"_id": ObjectId(cid), "agriculteur_id": u["id"]})
+    except:
+        cap = capteurs_col.find_one({"capteur_id": cid, "agriculteur_id": u["id"]})
+    if not cap: return jsonify({"error": "Capteur introuvable"}), 404
+    existing = mesures_col.count_documents({"capteur_id": cap["capteur_id"]})
+    if existing > 0:
+        return jsonify({"message": f"{existing} mesures déjà présentes"}), 200
+    now = datetime.utcnow()
+    batch = []
+    for h in range(24, 0, -1):
+        for m in [0, 30]:
+            ts = now - timedelta(hours=h, minutes=m)
+            batch.append({"capteur_id":cap["capteur_id"],"parcelle_id":cap["parcelle_id"],"parcelle_nom":cap.get("parcelle_nom",""),"agriculteur_id":u["id"],"type":cap["type"],"valeur":round(_gen(cap["type"],ts),2),"unite":cap["unite"],"timestamp":ts})
+    if batch: mesures_col.insert_many(batch)
+    return jsonify({"message": f"{len(batch)} mesures générées"}), 201
+
+
+@app.route("/api/generer_toutes_donnees", methods=["POST"])
+@require_role("agriculteur")
+def generer_toutes_donnees():
+    u = session["user"]
+    caps = list(capteurs_col.find({"agriculteur_id": u["id"], "actif": True}))
+    total = 0
+    now = datetime.utcnow()
+    for cap in caps:
+        if mesures_col.count_documents({"capteur_id": cap["capteur_id"]}) > 0:
+            continue
+        batch = []
+        for h in range(24, 0, -1):
+            for m in [0, 30]:
+                ts = now - timedelta(hours=h, minutes=m)
+                batch.append({"capteur_id":cap["capteur_id"],"parcelle_id":cap["parcelle_id"],"parcelle_nom":cap.get("parcelle_nom",""),"agriculteur_id":u["id"],"type":cap["type"],"valeur":round(_gen(cap["type"],ts),2),"unite":cap["unite"],"timestamp":ts})
+        if batch:
+            mesures_col.insert_many(batch)
+            total += len(batch)
+    return jsonify({"message": f"{total} mesures générées pour {len(caps)} capteurs"}), 201
 
 # ── DÉMARRAGE ────────────────────────────────────────────────
 # Exécuté par Gunicorn ET par python app.py
