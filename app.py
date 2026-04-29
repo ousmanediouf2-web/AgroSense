@@ -492,6 +492,39 @@ def get_agriculteurs():
     return jsonify(ags)
 
 
+
+@app.route("/api/debug/mon_compte")
+@require_login
+def debug_mon_compte():
+    """Debug - voir ce que l'API retourne pour l'utilisateur connecté."""
+    u = session["user"]
+    ag_id = u["id"]
+    depuis = datetime.utcnow() - timedelta(hours=24)
+    
+    nb_capteurs  = capteurs_col.count_documents({"agriculteur_id": ag_id})
+    nb_parcelles = parcelles_col.count_documents({"agriculteur_id": ag_id})
+    nb_mesures   = mesures_col.count_documents({"agriculteur_id": ag_id})
+    nb_mesures24h= mesures_col.count_documents({"agriculteur_id": ag_id, "timestamp": {"$gte": depuis}})
+    
+    # Exemple de mesure
+    sample = mesures_col.find_one({"agriculteur_id": ag_id}, {"_id": 0})
+    if sample and "timestamp" in sample:
+        sample["timestamp"] = sample["timestamp"].isoformat()
+    
+    # Exemple de capteur
+    cap_sample = capteurs_col.find_one({"agriculteur_id": ag_id}, {"_id": 0, "created_at": 0})
+    
+    return jsonify({
+        "session_user": u,
+        "agriculteur_id_filtre": ag_id,
+        "nb_capteurs":   nb_capteurs,
+        "nb_parcelles":  nb_parcelles,
+        "nb_mesures_total": nb_mesures,
+        "nb_mesures_24h":   nb_mesures24h,
+        "exemple_mesure":   sample,
+        "exemple_capteur":  cap_sample,
+    })
+
 # ── GÉNÉRATION DONNÉES ───────────────────────────────────────
 @app.route("/api/capteurs/<cid>/generer_historique", methods=["POST"])
 @require_role("agriculteur")
