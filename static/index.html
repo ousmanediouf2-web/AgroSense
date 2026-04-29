@@ -594,15 +594,6 @@
        TAB 1 — TABLEAU DE BORD
   ══════════════════════════════════════════ -->
   <div id="tab-dashboard" class="tab-content active">
-
-    <!-- Bouton actualisation données -->
-    <div id="btn-generer-wrap" style="margin-bottom:16px;display:none">
-      <button class="btn" onclick="genererEtActualiser()" style="background:linear-gradient(135deg,#0d9488,#0f766e);gap:8px">
-        🔄 Générer les données de mes capteurs
-      </button>
-      <span style="font-size:12px;color:var(--mute);margin-left:10px">Cliquez si le tableau de bord est vide</span>
-    </div>
-
     <!-- KPIs -->
     <div class="kpi-grid" id="kpi-grid">
       <div class="kpi-card"><div class="kpi-icon">📡</div><div class="kpi-value" id="kpi-capteurs">—</div><div class="kpi-label">Capteurs actifs</div><div class="kpi-badge">IoT</div></div>
@@ -828,11 +819,6 @@
   <!-- TAB GESTION PARCELLES -->
   <div id="tab-gestion" class="tab-content">
     <div class="section-title">🌿 Mes Parcelles</div>
-    <div style="margin-bottom:16px">
-      <button class="btn" onclick="genererToutesDonnees()" style="background:linear-gradient(135deg,#0d9488,#0f766e)">
-        🔄 Générer données pour tous mes capteurs
-      </button>
-    </div>
     <div class="filters-bar" style="margin-bottom:20px">
       <div class="filter-group"><span class="filter-label">Nom de la parcelle</span><input type="text" id="new-parcelle-nom" placeholder="Ex: Champ Nord" style="min-width:200px"/></div>
       <div class="filter-group"><span class="filter-label">Culture</span><input type="text" id="new-parcelle-culture" placeholder="Ex: Maïs" style="min-width:140px"/></div>
@@ -982,11 +968,7 @@ async function loadDashboard() {
     document.getElementById('kpi-parcelles').textContent = data.nb_parcelles;
     document.getElementById('kpi-mesures').textContent   = data.total_mesures.toLocaleString('fr-FR');
     document.getElementById('kpi-alertes').textContent   = data.nb_alertes;
-    // Afficher bouton si pas de mesures mais des capteurs
-    const btnWrap = document.getElementById('btn-generer-wrap');
-    if (btnWrap) {
-      btnWrap.style.display = (data.nb_capteurs > 0 && data.total_mesures === 0) ? 'block' : 'none';
-    }
+
 
     // Dernières lectures
     const container = document.getElementById('latest-sensors');
@@ -1460,35 +1442,7 @@ async function deleteCapteur(cid) {
   else toast('❌ Erreur','error');
 }
 
-async function genererEtActualiser() {
-  const btn = document.querySelector('#btn-generer-wrap button');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Génération en cours...'; }
-  try {
-    const res = await fetch('/api/generer_toutes_donnees', {method:'POST', credentials:'include'});
-    const data = await res.json();
-    toast('✅ ' + data.message);
-    // Rafraîchir tout
-    await loadDashboard();
-    if (document.querySelector('[data-tab="mesures"].active')) loadMesures();
-    if (document.querySelector('[data-tab="alertes"].active')) loadAlertes();
-    if (document.querySelector('[data-tab="stats"].active'))   loadStats();
-    if (document.querySelector('[data-tab="capteurs"].active')) loadCapteurs();
-  } catch(e) {
-    toast('❌ Erreur: ' + e.message, 'error');
-  }
-  if (btn) { btn.disabled = false; btn.innerHTML = '🔄 Générer les données de mes capteurs'; }
-}
 
-async function genererToutesDonnees() {
-  toast('⏳ Génération des données en cours...');
-  const res = await fetch('/api/generer_toutes_donnees', {method:'POST', credentials:'include'});
-  const data = await res.json();
-  if (res.ok) {
-    toast('✅ ' + data.message);
-    loadDashboard();
-    loadGestion();
-  } else toast('❌ ' + (data.error||'Erreur'), 'error');
-}
 
 init();
 loadUser();
